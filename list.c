@@ -1,6 +1,8 @@
 /*
 
 	<Lion>		15.05.2019
+
+	list.c		V1.1
 	
 
 	Queue messages of a given length, in which messages are sorted by priority. 
@@ -25,23 +27,29 @@ int num_list = 0; //number elements in list
 
 
 typedef struct Unit {
-	int value;
+	int value;			// Number of priority
+	int	data_1;			// Example - Data #1
+	char data_2[10];	// Example - Data #2
 	struct Unit* next;
 } Unit;
 
 
 
-void push(Unit** head, int data) {
+Unit * push(Unit** head, int data) {
 Unit* tmp;
 	tmp =  (Unit*)malloc(sizeof(Unit));
-	tmp->value = (int)data;
-	tmp->next = (*head);
-	(*head) = tmp;
+	if (tmp != NULL) {
+		tmp->value = (int)data;
+		tmp->next = (*head);
+		(*head) = tmp;
+	}
+	return tmp;
 }
 
 int pop(Unit** head) {
-	Unit* prev = NULL;
-	int val;
+Unit* prev = NULL;
+int val;
+
 	if (head == NULL) {
 		exit(-1);
 	}
@@ -71,13 +79,19 @@ Unit* getLast(Unit* head) {
 	return head;
 }
 
-void pushBack(Unit* head, int value) {
+Unit * pushBack(Unit* head, int value) {
+Unit * tmp;
+
 	Unit* last = getLast(head);
-	Unit* tmp = (Unit*)malloc(sizeof(Unit));
-	tmp->value = (int)value;
-	tmp->next = NULL;
-	last->next = tmp;
-	num_list++;
+	tmp = (Unit*)malloc(sizeof(Unit));
+
+	if (tmp != NULL) {
+		tmp->value = (int)value;
+		tmp->next = NULL;
+		last->next = tmp;
+		num_list++;
+	}
+	return tmp;
 }
 
 
@@ -122,9 +136,9 @@ int popBack(Unit** head) {
 /*
 	Insert to n place new value
 */
-void insert(Unit* head, unsigned n, int val) {
-	unsigned i = 0;
-	Unit* tmp = NULL;
+Unit * insert(Unit* head, unsigned n, int val) {
+unsigned i = 0;
+Unit* tmp = NULL;
 	
 	// Find the desired item. If you are out of the list, then exit the loop,
 	// the error will not be thrown away, it will be inserted at the end
@@ -133,17 +147,21 @@ void insert(Unit* head, unsigned n, int val) {
 		i++;
 	}
 	tmp = (Unit*)malloc(sizeof(Unit));
-	tmp->value = (int)val;
-	// If this is not the last element, then next we jump to the next Unit
-	if (head->next) {
-		tmp->next = head->next;
-		//else to NULL
+
+	if (tmp  != NULL) {
+		tmp->value = (int)val;
+		// If this is not the last element, then next we jump to the next Unit
+		if (head->next) {
+			tmp->next = head->next;
+			//else to NULL
+		}
+		else {
+			tmp->next = NULL;
+		}
+		head->next = tmp;
+		num_list++;
 	}
-	else {
-		tmp->next = NULL;
-	}
-	head->next = tmp;
-	num_list++;
+	return tmp;
 }
 
 
@@ -188,15 +206,19 @@ void deleteList(Unit** head) {
 	Create List from Array
 */
 
-void fromArray(Unit** head, int* arr, size_t size) {
+Unit * fromArray(Unit** head, int* arr, size_t size) {
+Unit* ip = NULL;
+
 	size_t i = size - 1;
 	if (arr == NULL || size == 0) {
-		return;
+		return (ip);
 	}
 	do {
-		push(head, arr[i]);
-	} while (i-- != 0);
+		
+		ip = push(head, arr[i]);
+	} while ((i-- != 0) && (ip != NULL));
 	num_list = size;
+	return (ip);
 }
 
 
@@ -204,11 +226,14 @@ void fromArray(Unit** head, int* arr, size_t size) {
 	Create Array from List
 */
 int* toArray(const Unit* head) {
+int* values;
+
 	int leng = sizeof(head);
-	int* values = (int*)malloc(leng * sizeof(int));
-	while (head) {
-		values[--leng] = head->value;
-		head = head->next;
+	if (values = (int*)malloc(leng * sizeof(int)) != NULL) {
+		while (head) {
+			values[--leng] = head->value;
+			head = head->next;
+		}
 	}
 	return values;
 }
@@ -277,7 +302,7 @@ void merge(Unit* a, Unit* b, Unit** c) {
 
 
 /*
-	Find the middle Ñ‰Ð° List
+	Find the middle ùà List
 */
 
 void split(Unit* src, Unit** low, Unit** high) {
@@ -329,7 +354,8 @@ int	number;
 Unit* head = NULL;
 int arr[] = { 3,7,34,2,11,8,5,4,2,1};
 	
-	fromArray(&head, arr, 10);
+	if (fromArray(&head, arr, 10) == NULL)
+		goto Error;
 	
 	printf("Non Sorted List:");
 	printLinkedList(head);
@@ -346,12 +372,15 @@ int arr[] = { 3,7,34,2,11,8,5,4,2,1};
 	{
 		scanf_s("%i", &number);
 		if (num_list < MAX_LIST_NUMBER) {
-			pushBack(head, number);
+			if (pushBack(head, number) == NULL)
+				goto Error;
 		}
 		else
 		{
-			popBack(&head);
-			pushBack(head, number);
+			if (popBack(&head) == NULL)
+				goto Error;
+			if (pushBack(head, number) == NULL)
+				goto Error;
 		}
 
 
@@ -366,4 +395,8 @@ int arr[] = { 3,7,34,2,11,8,5,4,2,1};
 	deleteList(&head);
 
 	return(0);
+
+Error:
+	printf("Malloc Error!!!\n\n");
+	return (1);
 }
